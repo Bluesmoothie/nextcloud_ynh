@@ -32,37 +32,30 @@ ynh_backup --src_path="$data_dir" --is_big
 #=================================================
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.d"
 
 #=================================================
-# BACKUP THE PHP-FPM CONFIGURATION
+# SYSTEM CONFIGURATION
 #=================================================
 
+# Backup the PHP-FPM configuration
 ynh_backup --src_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 
-#=================================================
-# SPECIFIC BACKUP
-#=================================================
-# BACKUP LOGROTATE
-#=================================================
+# Backup the nginx configuration
+ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
+# Backup the logrotate configuration
 ynh_backup --src_path="/etc/logrotate.d/$app"
 
-#=================================================
-# BACKUP FAIL2BAN CONFIGURATION
-#=================================================
-
+# Backup the Fail2Ban config
 ynh_backup --src_path="/etc/fail2ban/jail.d/$app.conf"
 ynh_backup --src_path="/etc/fail2ban/filter.d/$app.conf"
 
 #=================================================
-# BACKUP THE CRON FILE
+# BACKUP VARIOUS FILES
 #=================================================
 
 ynh_backup --src_path="/etc/cron.d/$app"
-
-#=================================================
-# BACKUP LOGS
-#=================================================
 
 ynh_backup --src_path="/var/log/$app"
 
@@ -72,6 +65,17 @@ ynh_backup --src_path="/var/log/$app"
 ynh_print_info --message="Backing up the MySQL database..."
 
 ynh_mysql_dump_db --database="$db_name" --default_character_set="utf8mb4" > db.sql
+
+#=================================================
+# BACKUP THE NOTIFY_PUSH APP
+#=================================================
+
+if [ $enable_notify_push -eq 1 ]
+then
+    ynh_backup --src_path="/etc/systemd/system/${app}-notify-push.service"
+    ynh_backup --src_path="/etc/systemd/system/${app}-notify-push-watcher.service"
+    ynh_backup --src_path="/etc/systemd/system/${app}-notify-push-watcher.path"
+fi
 
 #=================================================
 # END OF SCRIPT
