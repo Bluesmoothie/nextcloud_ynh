@@ -6,8 +6,6 @@ source /usr/share/yunohost/helpers
 #=================================================
 # REMOVE SYSTEM CONFIGURATIONS
 #=================================================
-# REMOVE SYSTEMD SERVICE 
-#=================================================
 ynh_script_progression --message="Removing system configurations related to $app..." --weight=5
 
 # Remove the dedicated NGINX config
@@ -24,10 +22,12 @@ ynh_remove_logrotate
 ynh_remove_fail2ban_config
 
 # Remove notify push
-ynh_remove_systemd_config --service="${app}-notify-push"
-ynh_exec_warn_less systemctl disable --now ${app}-notify-push-watcher.path
-ynh_secure_remove --file="/etc/systemd/system/${app}-notify-push-watcher.path"
-ynh_remove_systemd_config --service="${app}-notify-push-watcher"
+if [ $enable_notify_push -eq 1 ]; then
+  ynh_remove_systemd_config --service="${app}-notify-push"
+  systemctl disable --now --quiet ${app}-notify-push-watcher.path
+  ynh_secure_remove --file="/etc/systemd/system/${app}-notify-push-watcher.path"
+  ynh_remove_systemd_config --service="${app}-notify-push-watcher" 
+fi
 
 # Remove a cron file
 # TODO: Ensure that cron job is not running (How !?)
